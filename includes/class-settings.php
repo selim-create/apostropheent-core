@@ -43,7 +43,16 @@ final class Settings {
         if (!current_user_can('manage_options')) { return; }
         echo '<div class="wrap"><h1>Apostrophe Site Ayarları</h1><form method="post" action="options.php">';
         settings_fields(self::GROUP);
+
+        $current_group = '';
         foreach (self::fields() as $key => $field) {
+            $group = (string) ($field['group'] ?? 'Genel');
+            if ($group !== $current_group) {
+                if ($current_group !== '') { echo '<hr style="margin:32px 0">'; }
+                echo '<h2>' . esc_html($group) . '</h2>';
+                $current_group = $group;
+            }
+
             $name = 'apostrophe_core_' . $key;
             $value = get_option($name, $field['default'] ?? '');
             echo '<p><label for="' . esc_attr($name) . '"><strong>' . esc_html($field['label']) . '</strong></label><br>';
@@ -60,16 +69,26 @@ final class Settings {
 
     public static function fields(): array {
         return [
-            'frontend_url' => ['label' => 'Frontend Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'site_email' => ['label' => 'E-posta', 'input' => 'email', 'sanitize' => 'sanitize_email'],
-            'site_phone' => ['label' => 'Telefon', 'sanitize' => 'sanitize_text_field'],
-            'instagram_url' => ['label' => 'Instagram Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'linkedin_url' => ['label' => 'LinkedIn Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'london_address' => ['label' => 'Londra Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'paris_address' => ['label' => 'Paris Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'istanbul_address' => ['label' => 'İstanbul Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'revalidate_url' => ['label' => 'Revalidation Webhook Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'revalidate_secret' => ['label' => 'Revalidation Gizli Anahtarı', 'input' => 'password', 'sanitize' => 'sanitize_text_field'],
+            'frontend_url' => ['label' => 'Frontend Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel'],
+            'site_email' => ['label' => 'E-posta', 'input' => 'email', 'sanitize' => 'sanitize_email', 'group' => 'Genel'],
+            'site_phone' => ['label' => 'Telefon', 'sanitize' => 'sanitize_text_field', 'group' => 'Genel'],
+            'instagram_url' => ['label' => 'Instagram Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel'],
+            'linkedin_url' => ['label' => 'LinkedIn Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel'],
+            'london_address' => ['label' => 'Londra Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Genel'],
+            'paris_address' => ['label' => 'Paris Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Genel'],
+            'istanbul_address' => ['label' => 'İstanbul Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Genel'],
+
+            'work_seo_title_en' => ['label' => 'Projects / Work SEO Başlığı (EN)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
+            'work_seo_description_en' => ['label' => 'Projects / Work Meta Açıklaması (EN)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları SEO'],
+            'work_seo_title_fr' => ['label' => 'Projects / Work SEO Başlığı (FR)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
+            'work_seo_description_fr' => ['label' => 'Projects / Work Meta Açıklaması (FR)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları SEO'],
+            'testimonials_seo_title_en' => ['label' => 'Testimonials SEO Başlığı (EN)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
+            'testimonials_seo_description_en' => ['label' => 'Testimonials Meta Açıklaması (EN)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları SEO'],
+            'testimonials_seo_title_fr' => ['label' => 'Testimonials SEO Başlığı (FR)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
+            'testimonials_seo_description_fr' => ['label' => 'Testimonials Meta Açıklaması (FR)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları SEO'],
+
+            'revalidate_url' => ['label' => 'Revalidation Webhook Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Teknik'],
+            'revalidate_secret' => ['label' => 'Revalidation Gizli Anahtarı', 'input' => 'password', 'sanitize' => 'sanitize_text_field', 'group' => 'Teknik'],
         ];
     }
 }
