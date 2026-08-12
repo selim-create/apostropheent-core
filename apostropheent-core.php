@@ -3,7 +3,7 @@
  * Plugin Name: ApostropheEnt Core
  * Plugin URI: https://github.com/selim-create/apostropheent-core
  * Description: Headless WordPress core for Apostrophe Entertainment.
- * Version: 0.3.2
+ * Version: 0.3.3
  * Requires at least: 6.5
  * Requires PHP: 8.1
  * Author: Hip Medya
@@ -18,7 +18,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-define('APOSTROPHE_CORE_VERSION', '0.3.2');
+define('APOSTROPHE_CORE_VERSION', '0.3.3');
 define('APOSTROPHE_CORE_SCHEMA_VERSION', '3');
 define('APOSTROPHE_CORE_DIR', plugin_dir_path(__FILE__));
 define('APOSTROPHE_CORE_URL', plugin_dir_url(__FILE__));
