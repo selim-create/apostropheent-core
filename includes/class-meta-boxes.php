@@ -17,10 +17,10 @@ final class Meta_Boxes {
     }
 
     public static function register(): void {
-        add_meta_box('ae-home-details', 'Home Page Content', [self::class, 'home_box'], Content_Types::HOME, 'normal', 'high');
-        add_meta_box('ae-service-details', 'Service Details', [self::class, 'service_box'], Content_Types::SERVICE, 'side', 'default');
-        add_meta_box('ae-work-details', 'Work Details', [self::class, 'work_box'], Content_Types::WORK, 'normal', 'high');
-        add_meta_box('ae-testimonial-details', 'Testimonial Details', [self::class, 'testimonial_box'], Content_Types::TESTIMONIAL, 'normal', 'high');
+        add_meta_box('ae-home-details', 'Ana Sayfa İçeriği', [self::class, 'home_box'], Content_Types::HOME, 'normal', 'high');
+        add_meta_box('ae-service-details', 'Hizmet Detayları', [self::class, 'service_box'], Content_Types::SERVICE, 'side', 'default');
+        add_meta_box('ae-work-details', 'Proje Detayları', [self::class, 'work_box'], Content_Types::WORK, 'normal', 'high');
+        add_meta_box('ae-testimonial-details', 'Müşteri Görüşü Detayları', [self::class, 'testimonial_box'], Content_Types::TESTIMONIAL, 'normal', 'high');
     }
 
     public static function assets(string $hook): void {
@@ -32,60 +32,61 @@ final class Meta_Boxes {
 
     public static function home_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
-        self::field($post->ID, 'ae_hero_title', 'Hero Title', 'textarea');
-        self::field($post->ID, 'ae_about_heading', 'About Heading', 'text');
-        self::field($post->ID, 'ae_services_heading', 'Services Heading', 'text');
-        self::field($post->ID, 'ae_fields_heading', 'Fields Heading', 'text');
-        self::field($post->ID, 'ae_contact_heading', 'Contact Heading', 'text');
-        self::field($post->ID, 'ae_hero_desktop_id', 'Hero Desktop Media', 'media');
-        self::field($post->ID, 'ae_hero_mobile_id', 'Hero Mobile Media', 'media');
-        echo '<p class="description">Use the main editor for the About content. Create one Home item per language and connect them with Polylang.</p>';
+        self::field($post->ID, 'ae_hero_title', 'Hero Başlığı', 'textarea');
+        self::field($post->ID, 'ae_about_heading', 'Hakkımızda Başlığı', 'text');
+        self::field($post->ID, 'ae_services_heading', 'Hizmetler Başlığı', 'text');
+        self::field($post->ID, 'ae_fields_heading', 'Alanlar Başlığı', 'text');
+        self::field($post->ID, 'ae_contact_heading', 'İletişim Başlığı', 'text');
+        self::field($post->ID, 'ae_hero_desktop_id', 'Masaüstü Hero Medyası', 'media');
+        self::field($post->ID, 'ae_hero_mobile_id', 'Mobil Hero Medyası', 'media');
+        echo '<p class="description">Ana editörü Hakkımızda metni için kullanın. Her dil için bir Ana Sayfa kaydı oluşturun ve Polylang ile eşleştirin.</p>';
     }
 
     public static function service_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
-        self::field($post->ID, 'ae_style_key', 'Frontend Style Key', 'text');
+        self::field($post->ID, 'ae_style_key', 'Frontend Stil Anahtarı', 'text');
     }
 
     public static function work_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
         foreach ([
-            'ae_service_label' => ['Service / Project Type', 'text'],
-            'ae_year' => ['Year', 'number'],
-            'ae_accent' => ['Accent', 'select'],
-            'ae_hero_media_id' => ['Hero Media', 'media'],
-            'ae_gallery_ids' => ['Gallery', 'gallery'],
-            'ae_video_url' => ['Video URL', 'url'],
-            'ae_external_label' => ['External Link Label', 'text'],
-            'ae_external_url' => ['External Link URL', 'url'],
+            'ae_service_label' => ['Hizmet / Proje Türü', 'text'],
+            'ae_year' => ['Yıl', 'number'],
+            'ae_accent' => ['Renk Vurgusu', 'select'],
+            'ae_hero_media_id' => ['Hero Medyası', 'media'],
+            'ae_gallery_ids' => ['Galeri', 'gallery'],
+            'ae_video_url' => ['Video Adresi', 'url'],
+            'ae_external_label' => ['Dış Bağlantı Etiketi', 'text'],
+            'ae_external_url' => ['Dış Bağlantı Adresi', 'url'],
         ] as $key => [$label, $type]) {
             self::field($post->ID, $key, $label, $type);
         }
-        echo '<p class="description">Use Featured Image as the Work listing thumbnail, Excerpt as the short summary and the editor for long-form project copy.</p>';
+        echo '<p class="description">Liste görseli için Öne Çıkan Görseli, kısa özet için Özet alanını, detaylı proje metni için ana editörü kullanın.</p>';
     }
 
     public static function testimonial_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
-        self::field($post->ID, 'ae_person_name', 'Person Name', 'text');
-        self::field($post->ID, 'ae_person_role', 'Job Title', 'text');
-        self::field($post->ID, 'ae_company', 'Company', 'text');
-        self::field($post->ID, 'ae_accent', 'Accent', 'select');
-        echo '<p class="description">Use the main editor for the testimonial quote.</p>';
+        self::field($post->ID, 'ae_person_name', 'Ad Soyad', 'text');
+        self::field($post->ID, 'ae_person_role', 'Görev / Ünvan', 'text');
+        self::field($post->ID, 'ae_company', 'Şirket', 'text');
+        self::field($post->ID, 'ae_accent', 'Renk Vurgusu', 'select');
+        echo '<p class="description">Müşteri görüşü metni için ana editörü kullanın.</p>';
     }
 
     private static function field(int $post_id, string $key, string $label, string $type): void {
         $value = (string) get_post_meta($post_id, $key, true);
         echo '<div class="ae-field"><label><strong>' . esc_html($label) . '</strong></label>';
         if ('select' === $type) {
+            $labels = ['pink' => 'Pembe', 'orange' => 'Turuncu', 'blue' => 'Mavi', 'cream' => 'Krem', 'red' => 'Kırmızı'];
             echo '<select name="' . esc_attr($key) . '">';
-            foreach (['pink','orange','blue','cream','red'] as $accent) {
-                printf('<option value="%1$s" %2$s>%3$s</option>', esc_attr($accent), selected($value, $accent, false), esc_html(ucfirst($accent)));
+            foreach ($labels as $accent => $accent_label) {
+                printf('<option value="%1$s" %2$s>%3$s</option>', esc_attr($accent), selected($value, $accent, false), esc_html($accent_label));
             }
             echo '</select>';
         } elseif ('media' === $type) {
-            echo '<div class="ae-media-row"><input class="ae-media-id" type="number" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '"><button type="button" class="button ae-select-media">Choose Media</button><button type="button" class="button-link-delete ae-clear-media">Clear</button></div>';
+            echo '<div class="ae-media-row"><input class="ae-media-id" type="number" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '"><button type="button" class="button ae-select-media">Medya Seç</button><button type="button" class="button-link-delete ae-clear-media">Temizle</button></div>';
         } elseif ('gallery' === $type) {
-            echo '<div class="ae-media-row"><input class="ae-gallery-ids" type="text" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" placeholder="12,34,56"><button type="button" class="button ae-select-gallery">Choose Gallery</button><button type="button" class="button-link-delete ae-clear-gallery">Clear</button></div>';
+            echo '<div class="ae-media-row"><input class="ae-gallery-ids" type="text" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" placeholder="12,34,56"><button type="button" class="button ae-select-gallery">Galeri Seç</button><button type="button" class="button-link-delete ae-clear-gallery">Temizle</button></div>';
         } elseif ('textarea' === $type) {
             echo '<textarea name="' . esc_attr($key) . '" class="widefat" rows="4">' . esc_textarea($value) . '</textarea>';
         } else {
