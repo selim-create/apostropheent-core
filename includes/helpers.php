@@ -34,7 +34,7 @@ function gallery_payload(string $raw): array {
 function current_language_for_post(int $post_id): string {
     if (function_exists('pll_get_post_language')) {
         $lang = pll_get_post_language($post_id, 'slug');
-        if (is_string($lang) && $lang !== '') { return $lang; }
+        if (is_string($lang) && $lang !== '') { return Polylang::logical_language($lang); }
     }
     return 'en';
 }
