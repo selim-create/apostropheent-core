@@ -19,12 +19,20 @@ final class Plugin {
     public function boot(): void {
         Content_Types::boot();
         Meta_Boxes::boot();
+        Settings::boot();
         Rest::boot();
         Polylang::boot();
+        Revalidation::boot();
+        Security::boot();
     }
 
     public static function activate(): void {
         Content_Types::register();
+        update_option('apostrophe_core_schema_version', APOSTROPHE_CORE_SCHEMA_VERSION, false);
+        flush_rewrite_rules(false);
+    }
+
+    public static function deactivate(): void {
         flush_rewrite_rules(false);
     }
 }
