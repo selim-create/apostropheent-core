@@ -19,14 +19,18 @@ final class Rest {
             'callback' => [self::class, 'health'],
             'permission_callback' => '__return_true',
         ]);
-
+        register_rest_route(self::NS, '/site', [
+            'methods' => \WP_REST_Server::READABLE,
+            'callback' => [self::class, 'site'],
+            'permission_callback' => '__return_true',
+            'args' => ['lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key']],
+        ]);
         register_rest_route(self::NS, '/work', [
             'methods' => \WP_REST_Server::READABLE,
             'callback' => [self::class, 'work'],
             'permission_callback' => '__return_true',
             'args' => ['lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key']],
         ]);
-
         register_rest_route(self::NS, '/work/(?P<slug>[a-z0-9-]+)', [
             'methods' => \WP_REST_Server::READABLE,
             'callback' => [self::class, 'work_item'],
@@ -36,7 +40,6 @@ final class Rest {
                 'lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key'],
             ],
         ]);
-
         register_rest_route(self::NS, '/testimonials', [
             'methods' => \WP_REST_Server::READABLE,
             'callback' => [self::class, 'testimonials'],
@@ -49,6 +52,7 @@ final class Rest {
         return rest_ensure_response([
             'ok' => true,
             'version' => APOSTROPHE_CORE_VERSION,
+            'schema_version' => APOSTROPHE_CORE_SCHEMA_VERSION,
             'polylang' => function_exists('pll_get_post_language'),
             'rank_math' => defined('RANK_MATH_VERSION'),
         ]);
@@ -59,11 +63,74 @@ final class Rest {
             'post_type' => $post_type,
             'post_status' => 'publish',
             'posts_per_page' => 100,
-            'orderby' => ['menu_order' => 'ASC', 'date' => 'DESC'],
+            'orderby' => ['menu_order' => 'ASC', 'date' => 'ASC'],
             'no_found_rows' => true,
         ];
         if (function_exists('pll_get_post_language')) { $args['lang'] = $lang; }
         return get_posts($args);
+    }
+
+    private static function first(string $post_type, string $lang): ?\WP_Post {
+        $posts = self::query($post_type, $lang);
+        return $posts[0] ?? null;
+    }
+
+    public static function site(\WP_REST_Request $request): \WP_REST_Response {
+        $lang = (string) $request->get_param('lang');
+        $home = self::first(Content_Types::HOME, $lang);
+
+        $services = array_map(static function (\WP_Post $post): array {
+            return [
+                'id' => (int) $post->ID,
+                'slug' => $post->post_name,
+                'title' => get_the_title($post),
+                'content' => apply_filters('the_content', $post->post_content),
+                'image' => attachment_payload((int) get_post_thumbnail_id($post->ID)),
+                'style_key' => (string) get_post_meta($post->ID, 'ae_style_key', true),
+                'order' => (int) $post->menu_order,
+            ];
+        }, self::query(Content_Types::SERVICE, $lang));
+
+        $fields = array_map(static function (\WP_Post $post): array {
+            return [
+                'id' => (int) $post->ID,
+                'slug' => $post->post_name,
+                'title' => get_the_title($post),
+                'order' => (int) $post->menu_order,
+            ];
+        }, self::query(Content_Types::FIELD, $lang));
+
+        return rest_ensure_response([
+            'schema_version' => APOSTROPHE_CORE_SCHEMA_VERSION,
+            'language' => $lang,
+            'home' => $home ? [
+                'id' => (int) $home->ID,
+                'title' => get_the_title($home),
+                'hero_title' => (string) get_post_meta($home->ID, 'ae_hero_title', true),
+                'about_heading' => (string) get_post_meta($home->ID, 'ae_about_heading', true),
+                'about_content' => apply_filters('the_content', $home->post_content),
+                'services_heading' => (string) get_post_meta($home->ID, 'ae_services_heading', true),
+                'fields_heading' => (string) get_post_meta($home->ID, 'ae_fields_heading', true),
+                'contact_heading' => (string) get_post_meta($home->ID, 'ae_contact_heading', true),
+                'hero_desktop' => attachment_payload((int) get_post_meta($home->ID, 'ae_hero_desktop_id', true)),
+                'hero_mobile' => attachment_payload((int) get_post_meta($home->ID, 'ae_hero_mobile_id', true)),
+                'translations' => self::translations((int) $home->ID),
+                'rank_math' => self::rank_math((int) $home->ID),
+            ] : null,
+            'services' => $services,
+            'fields' => $fields,
+            'contact' => [
+                'email' => sanitize_email((string) get_option('apostrophe_core_site_email', '')),
+                'phone' => sanitize_text_field((string) get_option('apostrophe_core_site_phone', '')),
+                'instagram' => esc_url_raw((string) get_option('apostrophe_core_instagram_url', '')),
+                'linkedin' => esc_url_raw((string) get_option('apostrophe_core_linkedin_url', '')),
+                'addresses' => [
+                    'london' => (string) get_option('apostrophe_core_london_address', ''),
+                    'paris' => (string) get_option('apostrophe_core_paris_address', ''),
+                    'istanbul' => (string) get_option('apostrophe_core_istanbul_address', ''),
+                ],
+            ],
+        ]);
     }
 
     public static function work(\WP_REST_Request $request): \WP_REST_Response {
@@ -75,20 +142,20 @@ final class Rest {
     public static function work_item(\WP_REST_Request $request): \WP_REST_Response|\WP_Error {
         $slug = (string) $request->get_param('slug');
         $lang = (string) $request->get_param('lang');
-        $posts = get_posts([
+        $args = [
             'post_type' => Content_Types::WORK,
             'name' => $slug,
             'post_status' => 'publish',
             'posts_per_page' => 1,
-            'lang' => function_exists('pll_get_post_language') ? $lang : '',
-        ]);
+        ];
+        if (function_exists('pll_get_post_language')) { $args['lang'] = $lang; }
+        $posts = get_posts($args);
         if (!$posts) { return new \WP_Error('apostrophe_not_found', 'Work item not found.', ['status' => 404]); }
         return rest_ensure_response(self::work_payload($posts[0]));
     }
 
     private static function work_payload(\WP_Post $post): array {
         $id = (int) $post->ID;
-        $hero = (int) get_post_meta($id, 'ae_hero_media_id', true);
         return [
             'id' => $id,
             'slug' => $post->post_name,
@@ -101,7 +168,7 @@ final class Rest {
             'content' => apply_filters('the_content', $post->post_content),
             'order' => (int) $post->menu_order,
             'thumbnail' => attachment_payload((int) get_post_thumbnail_id($id)),
-            'hero_media' => attachment_payload($hero),
+            'hero_media' => attachment_payload((int) get_post_meta($id, 'ae_hero_media_id', true)),
             'gallery' => gallery_payload((string) get_post_meta($id, 'ae_gallery_ids', true)),
             'video_url' => esc_url_raw((string) get_post_meta($id, 'ae_video_url', true)),
             'external_link' => [
@@ -135,9 +202,8 @@ final class Rest {
 
     private static function translations(int $post_id): array {
         if (!function_exists('pll_get_post_translations')) { return []; }
-        $translations = pll_get_post_translations($post_id);
         $result = [];
-        foreach ($translations as $lang => $id) {
+        foreach (pll_get_post_translations($post_id) as $lang => $id) {
             $post = get_post((int) $id);
             if ($post) { $result[$lang] = ['id' => (int) $id, 'slug' => $post->post_name]; }
         }
