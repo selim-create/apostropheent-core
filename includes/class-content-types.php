@@ -18,23 +18,27 @@ final class Content_Types {
     }
 
     public static function register(): void {
-        self::register_type(self::HOME, 'Home', 'Home', ['title', 'editor', 'thumbnail'], 'dashicons-admin-home', 20);
-        self::register_type(self::SERVICE, 'Services', 'Service', ['title', 'editor', 'thumbnail', 'page-attributes'], 'dashicons-megaphone', 21);
-        self::register_type(self::FIELD, 'Fields', 'Field', ['title', 'page-attributes'], 'dashicons-screenoptions', 22);
-        self::register_type(self::WORK, 'Work', 'Work', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes'], 'dashicons-portfolio', 23);
-        self::register_type(self::TESTIMONIAL, 'Testimonials', 'Testimonial', ['title', 'editor', 'page-attributes'], 'dashicons-format-quote', 24);
+        self::register_type(self::HOME, 'Ana Sayfa', 'Ana Sayfa', ['title', 'editor', 'thumbnail']);
+        self::register_type(self::SERVICE, 'Hizmetler', 'Hizmet', ['title', 'editor', 'thumbnail', 'page-attributes']);
+        self::register_type(self::FIELD, 'Alanlar', 'Alan', ['title', 'page-attributes']);
+        self::register_type(self::WORK, 'Projeler', 'Proje', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes']);
+        self::register_type(self::TESTIMONIAL, 'Müşteri Görüşleri', 'Müşteri Görüşü', ['title', 'editor', 'page-attributes']);
     }
 
-    private static function register_type(string $post_type, string $plural, string $singular, array $supports, string $icon, int $position): void {
+    private static function register_type(string $post_type, string $plural, string $singular, array $supports): void {
         register_post_type($post_type, [
             'labels' => [
                 'name' => $plural,
                 'singular_name' => $singular,
-                'add_new_item' => 'Add New ' . $singular,
-                'edit_item' => 'Edit ' . $singular,
-                'new_item' => 'New ' . $singular,
-                'view_item' => 'View ' . $singular,
-                'search_items' => 'Search ' . $plural,
+                'add_new' => 'Yeni Ekle',
+                'add_new_item' => 'Yeni ' . $singular . ' Ekle',
+                'edit_item' => $singular . ' Düzenle',
+                'new_item' => 'Yeni ' . $singular,
+                'view_item' => $singular . ' Görüntüle',
+                'search_items' => $plural . ' Ara',
+                'not_found' => 'Kayıt bulunamadı.',
+                'not_found_in_trash' => 'Çöp kutusunda kayıt bulunamadı.',
+                'all_items' => 'Tümü',
             ],
             'public' => false,
             'show_ui' => true,
@@ -45,8 +49,6 @@ final class Content_Types {
             'has_archive' => false,
             'rewrite' => false,
             'query_var' => false,
-            'menu_icon' => $icon,
-            'menu_position' => $position,
         ]);
     }
 }
