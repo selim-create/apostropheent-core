@@ -68,6 +68,8 @@ final class Rest {
             'order' => (int) $post->menu_order,
         ], self::query(Content_Types::FIELD, $lang));
 
+        $logical_lang = 'fr' === $lang ? 'fr' : 'en';
+
         return rest_ensure_response([
             'schema_version' => APOSTROPHE_CORE_SCHEMA_VERSION,
             'language' => $lang,
@@ -88,6 +90,16 @@ final class Rest {
             ] : null,
             'services' => $services,
             'fields' => $fields,
+            'listing_seo' => [
+                'work' => [
+                    'title' => self::text((string) get_option('apostrophe_core_work_seo_title_' . $logical_lang, '')),
+                    'description' => self::text((string) get_option('apostrophe_core_work_seo_description_' . $logical_lang, '')),
+                ],
+                'testimonials' => [
+                    'title' => self::text((string) get_option('apostrophe_core_testimonials_seo_title_' . $logical_lang, '')),
+                    'description' => self::text((string) get_option('apostrophe_core_testimonials_seo_description_' . $logical_lang, '')),
+                ],
+            ],
             'contact' => [
                 'email' => sanitize_email((string) get_option('apostrophe_core_site_email', '')),
                 'phone' => self::text(sanitize_text_field((string) get_option('apostrophe_core_site_phone', ''))),
