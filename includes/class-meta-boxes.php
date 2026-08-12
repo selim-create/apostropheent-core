@@ -53,15 +53,15 @@ final class Meta_Boxes {
             'ae_service_label' => ['Hizmet / Proje Türü', 'text'],
             'ae_year' => ['Yıl', 'number'],
             'ae_accent' => ['Renk Vurgusu', 'select'],
-            'ae_hero_media_id' => ['Hero Medyası', 'media'],
-            'ae_gallery_ids' => ['Galeri', 'gallery'],
-            'ae_video_url' => ['Video Adresi', 'url'],
+            'ae_hero_media_id' => ['Hero Görseli', 'media'],
+            'ae_gallery_ids' => ['Galeri Görselleri', 'gallery'],
+            'ae_video_url' => ['Proje Videosu', 'video'],
             'ae_external_label' => ['Dış Bağlantı Etiketi', 'text'],
             'ae_external_url' => ['Dış Bağlantı Adresi', 'url'],
         ] as $key => [$label, $type]) {
             self::field($post->ID, $key, $label, $type);
         }
-        echo '<p class="description">Liste görseli için Öne Çıkan Görseli, kısa özet için Özet alanını, detaylı proje metni için ana editörü kullanın.</p>';
+        echo '<p class="description"><strong>Medya kullanımı:</strong> Liste kartındaki görsel için Öne Çıkan Görseli; detay sayfasının ana görseli için Hero Görseli; ek fotoğraflar için Galeri Görselleri; video için Proje Videosu alanını kullanın. Kısa özet için Özet alanını, detaylı proje metni için ana editörü kullanın.</p>';
     }
 
     public static function testimonial_box(\WP_Post $post): void {
@@ -75,7 +75,8 @@ final class Meta_Boxes {
 
     private static function field(int $post_id, string $key, string $label, string $type): void {
         $value = (string) get_post_meta($post_id, $key, true);
-        echo '<div class="ae-field"><label><strong>' . esc_html($label) . '</strong></label>';
+        echo '<div class="ae-field"><label><strong>' . esc_html($label) . '</strong></label><div class="ae-field-control">';
+
         if ('select' === $type) {
             $labels = ['pink' => 'Pembe', 'orange' => 'Turuncu', 'blue' => 'Mavi', 'cream' => 'Krem', 'red' => 'Kırmızı'];
             echo '<select name="' . esc_attr($key) . '">';
@@ -84,15 +85,32 @@ final class Meta_Boxes {
             }
             echo '</select>';
         } elseif ('media' === $type) {
-            echo '<div class="ae-media-row"><input class="ae-media-id" type="number" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '"><button type="button" class="button ae-select-media">Medya Seç</button><button type="button" class="button-link-delete ae-clear-media">Temizle</button></div>';
+            $id = absint($value);
+            echo '<div class="ae-media-preview">' . self::attachment_preview($id) . '</div>';
+            echo '<div class="ae-media-row"><input class="ae-media-id" type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '"><button type="button" class="button ae-select-media">Görsel Seç / Değiştir</button><button type="button" class="button-link-delete ae-clear-media">Temizle</button></div>';
         } elseif ('gallery' === $type) {
-            echo '<div class="ae-media-row"><input class="ae-gallery-ids" type="text" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" placeholder="12,34,56"><button type="button" class="button ae-select-gallery">Galeri Seç</button><button type="button" class="button-link-delete ae-clear-gallery">Temizle</button></div>';
+            $ids = array_values(array_filter(array_map('absint', explode(',', $value))));
+            echo '<div class="ae-gallery-preview">';
+            foreach ($ids as $id) { echo self::attachment_preview($id); }
+            echo '</div>';
+            echo '<div class="ae-media-row"><input class="ae-gallery-ids" type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '"><button type="button" class="button ae-select-gallery">Galeri Seç / Düzenle</button><button type="button" class="button-link-delete ae-clear-gallery">Temizle</button></div>';
+        } elseif ('video' === $type) {
+            echo '<div class="ae-video-row"><input type="url" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" class="widefat ae-video-url" placeholder="YouTube, Vimeo veya doğrudan MP4/WebM adresi"><button type="button" class="button ae-select-video">Medya Kütüphanesinden Video Seç</button></div>';
+            echo '<p class="description">YouTube/Vimeo bağlantısı yapıştırabilir veya WordPress Medya Kütüphanesinden MP4/WebM seçebilirsiniz.</p>';
         } elseif ('textarea' === $type) {
             echo '<textarea name="' . esc_attr($key) . '" class="widefat" rows="4">' . esc_textarea($value) . '</textarea>';
         } else {
             echo '<input type="' . esc_attr($type) . '" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '" class="widefat">';
         }
-        echo '</div>';
+
+        echo '</div></div>';
+    }
+
+    private static function attachment_preview(int $attachment_id): string {
+        if (!$attachment_id) { return '<span class="ae-empty-preview">Görsel seçilmedi</span>'; }
+        $image = wp_get_attachment_image($attachment_id, 'thumbnail', false, ['class' => 'ae-preview-image']);
+        if (!$image) { return '<span class="ae-empty-preview">Medya #' . esc_html((string) $attachment_id) . '</span>'; }
+        return '<div class="ae-preview-item">' . $image . '<span>#' . esc_html((string) $attachment_id) . '</span></div>';
     }
 
     public static function save(int $post_id, \WP_Post $post): void {
