@@ -7,6 +7,9 @@ namespace ApostropheEnt\Core;
 if (!defined('ABSPATH')) { exit; }
 
 final class Content_Types {
+    public const HOME = 'ae_home';
+    public const SERVICE = 'ae_service';
+    public const FIELD = 'ae_field';
     public const WORK = 'ae_work';
     public const TESTIMONIAL = 'ae_testimonial';
 
@@ -15,38 +18,35 @@ final class Content_Types {
     }
 
     public static function register(): void {
-        register_post_type(self::WORK, [
-            'labels' => [
-                'name' => 'Work',
-                'singular_name' => 'Work',
-                'add_new_item' => 'Add New Work',
-                'edit_item' => 'Edit Work',
-            ],
-            'public' => false,
-            'show_ui' => true,
-            'show_in_menu' => true,
-            'show_in_rest' => true,
-            'menu_icon' => 'dashicons-portfolio',
-            'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes'],
-            'rewrite' => false,
-            'has_archive' => false,
-        ]);
+        self::register_type(self::HOME, 'Home', 'Home', ['title', 'editor', 'thumbnail'], 'dashicons-admin-home', 20);
+        self::register_type(self::SERVICE, 'Services', 'Service', ['title', 'editor', 'thumbnail', 'page-attributes'], 'dashicons-megaphone', 21);
+        self::register_type(self::FIELD, 'Fields', 'Field', ['title', 'page-attributes'], 'dashicons-screenoptions', 22);
+        self::register_type(self::WORK, 'Work', 'Work', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes'], 'dashicons-portfolio', 23);
+        self::register_type(self::TESTIMONIAL, 'Testimonials', 'Testimonial', ['title', 'editor', 'page-attributes'], 'dashicons-format-quote', 24);
+    }
 
-        register_post_type(self::TESTIMONIAL, [
+    private static function register_type(string $post_type, string $plural, string $singular, array $supports, string $icon, int $position): void {
+        register_post_type($post_type, [
             'labels' => [
-                'name' => 'Testimonials',
-                'singular_name' => 'Testimonial',
-                'add_new_item' => 'Add New Testimonial',
-                'edit_item' => 'Edit Testimonial',
+                'name' => $plural,
+                'singular_name' => $singular,
+                'add_new_item' => 'Add New ' . $singular,
+                'edit_item' => 'Edit ' . $singular,
+                'new_item' => 'New ' . $singular,
+                'view_item' => 'View ' . $singular,
+                'search_items' => 'Search ' . $plural,
             ],
             'public' => false,
             'show_ui' => true,
-            'show_in_menu' => true,
+            'show_in_menu' => 'apostrophe-core',
             'show_in_rest' => true,
-            'menu_icon' => 'dashicons-format-quote',
-            'supports' => ['title', 'editor', 'page-attributes'],
-            'rewrite' => false,
+            'supports' => $supports,
+            'hierarchical' => false,
             'has_archive' => false,
+            'rewrite' => false,
+            'query_var' => false,
+            'menu_icon' => $icon,
+            'menu_position' => $position,
         ]);
     }
 }
