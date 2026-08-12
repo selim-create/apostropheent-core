@@ -38,7 +38,14 @@ final class Importer {
         check_admin_referer('apostrophe_run_legacy_import');
 
         $seed = require APOSTROPHE_CORE_DIR . 'data/legacy-seed.php';
-        $report = ['created' => [], 'updated' => [], 'translations' => [], 'errors' => []];
+        $report = [
+            'polylang_languages' => Polylang::language_debug(),
+            'resolved_languages' => ['en' => Polylang::resolve_slug('en'), 'fr' => Polylang::resolve_slug('fr')],
+            'created' => [],
+            'updated' => [],
+            'translations' => [],
+            'errors' => [],
+        ];
 
         $home_ids = [];
         foreach (['en', 'fr'] as $lang) {
@@ -114,26 +121,56 @@ final class Importer {
         update_post_meta($post_id, 'apostrophe_seed_key', $seed_key);
         foreach (($data['meta'] ?? []) as $key => $value) { update_post_meta($post_id, (string) $key, $value); }
 
-        if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, $lang); }
+        $resolved = Polylang::resolve_slug($lang);
+        if (function_exists('pll_set_post_language')) { pll_set_post_language($post_id, $resolved); }
+        $assigned = function_exists('pll_get_post_language') ? pll_get_post_language($post_id, 'slug') : null;
 
-        $report[$is_new ? 'created' : 'updated'][] = ['key' => $seed_key, 'id' => $post_id, 'lang' => $lang, 'assigned_language' => function_exists('pll_get_post_language') ? pll_get_post_language($post_id, 'slug') : null];
+        if (function_exists('pll_set_post_language') && $assigned !== $resolved) {
+            $report['errors'][] = [
+                'key' => $seed_key,
+                'error' => 'Dil atanamadı.',
+                'requested_language' => $lang,
+                'resolved_language' => $resolved,
+                'assigned_language' => $assigned,
+            ];
+        }
+
+        $report[$is_new ? 'created' : 'updated'][] = [
+            'key' => $seed_key,
+            'id' => $post_id,
+            'lang' => $lang,
+            'resolved_language' => $resolved,
+            'assigned_language' => $assigned,
+        ];
         return $post_id;
     }
 
     private static function link_translations(array $ids, array &$report, string $group): void {
         $translations = [];
+        $logical_to_resolved = [];
         foreach (['en', 'fr'] as $lang) {
-            if (!empty($ids[$lang])) { $translations[$lang] = absint($ids[$lang]); }
+            if (empty($ids[$lang])) { continue; }
+            $resolved = Polylang::resolve_slug($lang);
+            $translations[$resolved] = absint($ids[$lang]);
+            $logical_to_resolved[$lang] = $resolved;
         }
+
         if (count($translations) < 2 || !function_exists('pll_save_post_translations')) {
             $report['errors'][] = ['group' => $group, 'error' => 'Polylang çeviri eşleştirmesi yapılamadı.'];
             return;
         }
+
         pll_save_post_translations($translations);
         $verified = [];
-        foreach ($translations as $lang => $post_id) {
-            $verified[$lang] = function_exists('pll_get_post') ? (int) pll_get_post($post_id, $lang) : $post_id;
+        foreach ($ids as $logical => $post_id) {
+            $resolved = $logical_to_resolved[$logical] ?? Polylang::resolve_slug($logical);
+            $verified[$logical] = function_exists('pll_get_post') ? (int) pll_get_post((int) $post_id, $resolved) : (int) $post_id;
         }
-        $report['translations'][] = ['group' => $group, 'ids' => $translations, 'verified' => $verified];
+        $report['translations'][] = [
+            'group' => $group,
+            'ids' => $ids,
+            'resolved_keys' => $logical_to_resolved,
+            'verified' => $verified,
+        ];
     }
 }
