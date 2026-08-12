@@ -18,15 +18,12 @@ final class Settings {
 
     public static function menu(): void {
         add_menu_page('Apostrophe', 'Apostrophe', 'edit_posts', 'apostrophe-core', [self::class, 'dashboard'], 'dashicons-rest-api', 20);
-        add_submenu_page('apostrophe-core', 'Site Settings', 'Site Settings', 'manage_options', self::PAGE, [self::class, 'render']);
+        add_submenu_page('apostrophe-core', 'Site Ayarları', 'Site Ayarları', 'manage_options', self::PAGE, [self::class, 'render']);
     }
 
     public static function register(): void {
         foreach (self::fields() as $key => $field) {
-            register_setting(self::GROUP, 'apostrophe_core_' . $key, [
-                'sanitize_callback' => $field['sanitize'],
-                'default' => $field['default'] ?? '',
-            ]);
+            register_setting(self::GROUP, 'apostrophe_core_' . $key, ['sanitize_callback' => $field['sanitize'], 'default' => $field['default'] ?? '']);
         }
     }
 
@@ -38,13 +35,13 @@ final class Settings {
     }
 
     public static function dashboard(): void {
-        echo '<div class="wrap"><h1>ApostropheEnt Core</h1><p>Headless CMS for Apostrophe Entertainment.</p>';
+        echo '<div class="wrap"><h1>ApostropheEnt Core</h1><p>Apostrophe Entertainment için headless CMS yönetim alanı.</p>';
         echo '<p><code>' . esc_html(rest_url('apostrophe/v1/site?lang=en')) . '</code></p></div>';
     }
 
     public static function render(): void {
         if (!current_user_can('manage_options')) { return; }
-        echo '<div class="wrap"><h1>Apostrophe Site Settings</h1><form method="post" action="options.php">';
+        echo '<div class="wrap"><h1>Apostrophe Site Ayarları</h1><form method="post" action="options.php">';
         settings_fields(self::GROUP);
         foreach (self::fields() as $key => $field) {
             $name = 'apostrophe_core_' . $key;
@@ -55,25 +52,24 @@ final class Settings {
             } else {
                 echo '<input class="regular-text" type="' . esc_attr($field['input'] ?? 'text') . '" id="' . esc_attr($name) . '" name="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
             }
-            if (!empty($field['description'])) { echo '<br><span class="description">' . esc_html($field['description']) . '</span>'; }
             echo '</p>';
         }
-        submit_button();
+        submit_button('Değişiklikleri Kaydet');
         echo '</form></div>';
     }
 
     public static function fields(): array {
         return [
-            'frontend_url' => ['label' => 'Frontend URL', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'site_email' => ['label' => 'Email', 'input' => 'email', 'sanitize' => 'sanitize_email'],
-            'site_phone' => ['label' => 'Phone', 'sanitize' => 'sanitize_text_field'],
-            'instagram_url' => ['label' => 'Instagram URL', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'linkedin_url' => ['label' => 'LinkedIn URL', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'london_address' => ['label' => 'London Address', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'paris_address' => ['label' => 'Paris Address', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'istanbul_address' => ['label' => 'Istanbul Address', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
-            'revalidate_url' => ['label' => 'Revalidation Webhook URL', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
-            'revalidate_secret' => ['label' => 'Revalidation Secret', 'input' => 'password', 'sanitize' => 'sanitize_text_field'],
+            'frontend_url' => ['label' => 'Frontend Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
+            'site_email' => ['label' => 'E-posta', 'input' => 'email', 'sanitize' => 'sanitize_email'],
+            'site_phone' => ['label' => 'Telefon', 'sanitize' => 'sanitize_text_field'],
+            'instagram_url' => ['label' => 'Instagram Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
+            'linkedin_url' => ['label' => 'LinkedIn Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
+            'london_address' => ['label' => 'Londra Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
+            'paris_address' => ['label' => 'Paris Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
+            'istanbul_address' => ['label' => 'İstanbul Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field'],
+            'revalidate_url' => ['label' => 'Revalidation Webhook Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw'],
+            'revalidate_secret' => ['label' => 'Revalidation Gizli Anahtarı', 'input' => 'password', 'sanitize' => 'sanitize_text_field'],
         ];
     }
 }
