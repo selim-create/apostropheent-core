@@ -12,8 +12,9 @@ final class Polylang {
     }
 
     public static function post_types(array $post_types, bool $is_settings): array {
-        $post_types[Content_Types::WORK] = Content_Types::WORK;
-        $post_types[Content_Types::TESTIMONIAL] = Content_Types::TESTIMONIAL;
+        foreach ([Content_Types::HOME, Content_Types::SERVICE, Content_Types::FIELD, Content_Types::WORK, Content_Types::TESTIMONIAL] as $post_type) {
+            $post_types[$post_type] = $post_type;
+        }
         return $post_types;
     }
 
