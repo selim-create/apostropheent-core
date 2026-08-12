@@ -24,6 +24,7 @@ final class Plugin {
         Polylang::boot();
         Revalidation::boot();
         Security::boot();
+        Importer::boot();
     }
 
     public static function activate(): void {

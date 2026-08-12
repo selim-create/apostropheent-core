@@ -70,6 +70,14 @@ final class Rest {
         return get_posts($args);
     }
 
+    private static function query_with_fallback(string $post_type, string $lang): array {
+        $items = self::query($post_type, $lang);
+        if (!$items && 'en' !== $lang) {
+            $items = self::query($post_type, 'en');
+        }
+        return $items;
+    }
+
     private static function first(string $post_type, string $lang): ?\WP_Post {
         $posts = self::query($post_type, $lang);
         return $posts[0] ?? null;
@@ -135,13 +143,32 @@ final class Rest {
 
     public static function work(\WP_REST_Request $request): \WP_REST_Response {
         $lang = (string) $request->get_param('lang');
-        $items = array_map([self::class, 'work_payload'], self::query(Content_Types::WORK, $lang));
-        return rest_ensure_response(['language' => $lang, 'items' => $items]);
+        $posts = self::query_with_fallback(Content_Types::WORK, $lang);
+        $items = array_map([self::class, 'work_payload'], $posts);
+        return rest_ensure_response([
+            'language' => $lang,
+            'fallback_language' => ($posts && current_language_for_post((int) $posts[0]->ID) !== $lang) ? 'en' : null,
+            'items' => $items,
+        ]);
     }
 
     public static function work_item(\WP_REST_Request $request): \WP_REST_Response|\WP_Error {
         $slug = (string) $request->get_param('slug');
         $lang = (string) $request->get_param('lang');
+        $posts = self::find_work($slug, $lang);
+        $fallback = false;
+        if (!$posts && 'en' !== $lang) {
+            $posts = self::find_work($slug, 'en');
+            $fallback = (bool) $posts;
+        }
+        if (!$posts) { return new \WP_Error('apostrophe_not_found', 'Work item not found.', ['status' => 404]); }
+        $payload = self::work_payload($posts[0]);
+        $payload['requested_language'] = $lang;
+        $payload['fallback_language'] = $fallback ? 'en' : null;
+        return rest_ensure_response($payload);
+    }
+
+    private static function find_work(string $slug, string $lang): array {
         $args = [
             'post_type' => Content_Types::WORK,
             'name' => $slug,
@@ -149,9 +176,7 @@ final class Rest {
             'posts_per_page' => 1,
         ];
         if (function_exists('pll_get_post_language')) { $args['lang'] = $lang; }
-        $posts = get_posts($args);
-        if (!$posts) { return new \WP_Error('apostrophe_not_found', 'Work item not found.', ['status' => 404]); }
-        return rest_ensure_response(self::work_payload($posts[0]));
+        return get_posts($args);
     }
 
     private static function work_payload(\WP_Post $post): array {
@@ -182,8 +207,9 @@ final class Rest {
 
     public static function testimonials(\WP_REST_Request $request): \WP_REST_Response {
         $lang = (string) $request->get_param('lang');
+        $posts = self::query_with_fallback(Content_Types::TESTIMONIAL, $lang);
         $items = [];
-        foreach (self::query(Content_Types::TESTIMONIAL, $lang) as $post) {
+        foreach ($posts as $post) {
             $id = (int) $post->ID;
             $items[] = [
                 'id' => $id,
@@ -197,7 +223,11 @@ final class Rest {
                 'translations' => self::translations($id),
             ];
         }
-        return rest_ensure_response(['language' => $lang, 'items' => $items]);
+        return rest_ensure_response([
+            'language' => $lang,
+            'fallback_language' => ($posts && current_language_for_post((int) $posts[0]->ID) !== $lang) ? 'en' : null,
+            'items' => $items,
+        ]);
     }
 
     private static function translations(int $post_id): array {
