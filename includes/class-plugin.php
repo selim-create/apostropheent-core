@@ -25,6 +25,7 @@ final class Plugin {
         Revalidation::boot();
         Security::boot();
         Importer::boot();
+        Rank_Math::boot();
     }
 
     public static function activate(): void {
