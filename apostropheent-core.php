@@ -3,7 +3,7 @@
  * Plugin Name: ApostropheEnt Core
  * Plugin URI: https://github.com/selim-create/apostropheent-core
  * Description: Headless WordPress core for Apostrophe Entertainment.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Requires at least: 6.5
  * Requires PHP: 8.1
  * Author: Hip Medya
@@ -18,7 +18,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-define('APOSTROPHE_CORE_VERSION', '0.4.0');
+define('APOSTROPHE_CORE_VERSION', '0.4.1');
 define('APOSTROPHE_CORE_SCHEMA_VERSION', '4');
 define('APOSTROPHE_CORE_DIR', plugin_dir_path(__FILE__));
 define('APOSTROPHE_CORE_URL', plugin_dir_url(__FILE__));
@@ -35,6 +35,11 @@ require_once APOSTROPHE_CORE_DIR . 'includes/class-security.php';
 require_once APOSTROPHE_CORE_DIR . 'includes/class-importer.php';
 require_once APOSTROPHE_CORE_DIR . 'includes/class-rank-math.php';
 require_once APOSTROPHE_CORE_DIR . 'includes/class-plugin.php';
+
+add_action('admin_enqueue_scripts', static function (string $hook): void {
+    if (!in_array($hook, ['post.php', 'post-new.php'], true)) { return; }
+    wp_enqueue_script('apostrophe-core-gallery-sort', APOSTROPHE_CORE_URL . 'assets/gallery-sort.js', ['jquery'], APOSTROPHE_CORE_VERSION, true);
+});
 
 register_activation_hook(__FILE__, ['ApostropheEnt\\Core\\Plugin', 'activate']);
 register_deactivation_hook(__FILE__, ['ApostropheEnt\\Core\\Plugin', 'deactivate']);
