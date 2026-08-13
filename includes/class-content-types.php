@@ -21,11 +21,11 @@ final class Content_Types {
         self::register_type(self::HOME, 'Ana Sayfa', 'Ana Sayfa', ['title', 'editor', 'thumbnail']);
         self::register_type(self::SERVICE, 'Hizmetler', 'Hizmet', ['title', 'editor', 'thumbnail', 'page-attributes']);
         self::register_type(self::FIELD, 'Alanlar', 'Alan', ['title', 'page-attributes']);
-        self::register_type(self::WORK, 'Projeler', 'Proje', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes']);
-        self::register_type(self::TESTIMONIAL, 'Müşteri Görüşleri', 'Müşteri Görüşü', ['title', 'editor', 'page-attributes']);
+        self::register_type(self::WORK, 'Projeler', 'Proje', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes'], true);
+        self::register_type(self::TESTIMONIAL, 'Müşteri Görüşleri', 'Müşteri Görüşü', ['title', 'editor', 'page-attributes'], true);
     }
 
-    private static function register_type(string $post_type, string $plural, string $singular, array $supports): void {
+    private static function register_type(string $post_type, string $plural, string $singular, array $supports, bool $seo_visible = false): void {
         register_post_type($post_type, [
             'labels' => [
                 'name' => $plural,
@@ -50,9 +50,17 @@ final class Content_Types {
                 'items_list_navigation' => $plural . ' liste navigasyonu',
                 'items_list' => $plural . ' listesi',
             ],
-            'public' => false,
+            // Rank Math discovers SEO-manageable custom post types through their
+            // public registration state. Work/Testimonial therefore advertise
+            // themselves as public content models, while all native WordPress
+            // frontend routes remain explicitly disabled for the headless setup.
+            'public' => $seo_visible,
+            'publicly_queryable' => false,
+            'exclude_from_search' => true,
             'show_ui' => true,
             'show_in_menu' => 'apostrophe-core',
+            'show_in_nav_menus' => false,
+            'show_in_admin_bar' => false,
             'show_in_rest' => true,
             'supports' => $supports,
             'hierarchical' => false,
