@@ -36,7 +36,11 @@ final class Rest {
     }
 
     private static function query(string $post_type, string $lang): array {
-        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => 100, 'orderby' => ['menu_order' => 'ASC', 'date' => 'ASC'], 'no_found_rows' => true, 'suppress_filters' => false];
+        $orderby = Content_Types::WORK === $post_type
+            ? ['date' => 'DESC', 'ID' => 'DESC']
+            : ['menu_order' => 'ASC', 'date' => 'ASC'];
+
+        $args = ['post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => 100, 'orderby' => $orderby, 'no_found_rows' => true, 'suppress_filters' => false];
         if (function_exists('pll_get_post_language')) { $args['lang'] = Polylang::resolve_slug($lang); }
         return get_posts($args);
     }
