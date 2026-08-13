@@ -3,8 +3,45 @@
 
   function previewItem(item) {
     const thumb = item.sizes && item.sizes.thumbnail ? item.sizes.thumbnail.url : item.url;
-    return '<div class="ae-preview-item"><img class="ae-preview-image" src="' + thumb + '" alt=""><span>#' + item.id + '</span></div>';
+    return '<div class="ae-preview-item" draggable="true"><img class="ae-preview-image" src="' + thumb + '" alt=""><span>#' + item.id + '</span></div>';
   }
+
+  function galleryItemId($item) {
+    return String($item.find('span').first().text() || '').replace(/[^0-9]/g, '');
+  }
+
+  function syncGalleryInput($preview) {
+    const ids = $preview.children('.ae-preview-item').map(function () { return galleryItemId($(this)); }).get().filter(Boolean);
+    $preview.closest('.ae-field-control').find('.ae-gallery-ids').val(ids.join(','));
+  }
+
+  function initGallerySort() {
+    $('.ae-gallery-preview .ae-preview-item').attr('draggable', 'true');
+  }
+
+  $(document).on('dragstart', '.ae-gallery-preview .ae-preview-item', function (event) {
+    $(this).addClass('is-dragging');
+    const nativeEvent = event.originalEvent;
+    if (nativeEvent && nativeEvent.dataTransfer) {
+      nativeEvent.dataTransfer.effectAllowed = 'move';
+      nativeEvent.dataTransfer.setData('text/plain', galleryItemId($(this)));
+    }
+  });
+
+  $(document).on('dragend', '.ae-gallery-preview .ae-preview-item', function () {
+    $(this).removeClass('is-dragging');
+    syncGalleryInput($(this).closest('.ae-gallery-preview'));
+  });
+
+  $(document).on('dragover', '.ae-gallery-preview .ae-preview-item', function (event) {
+    event.preventDefault();
+    const $dragging = $('.ae-gallery-preview .ae-preview-item.is-dragging').first();
+    if (!$dragging.length || $dragging.is(this)) return;
+    const rect = this.getBoundingClientRect();
+    const nativeEvent = event.originalEvent;
+    const before = nativeEvent ? nativeEvent.clientX < rect.left + rect.width / 2 : true;
+    if (before) $dragging.insertBefore(this); else $dragging.insertAfter(this);
+  });
 
   function syncVideoRows() {
     $('.ae-video-list .ae-video-card').each(function (index) {
@@ -54,6 +91,7 @@
       const items = frame.state().get('selection').map(function (item) { return item.toJSON(); });
       $input.val(items.map(function (item) { return item.id; }).join(','));
       $preview.html(items.map(previewItem).join(''));
+      initGallerySort();
     });
     frame.open();
   });
@@ -139,5 +177,8 @@
     $card.find('.ae-video-poster-preview').html('<span class="ae-empty-preview">Görsel seçilmedi</span>');
   });
 
-  $(function () { syncVideoRows(); });
+  $(function () {
+    syncVideoRows();
+    initGallerySort();
+  });
 })(jQuery);
