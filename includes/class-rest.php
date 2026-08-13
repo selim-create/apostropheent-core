@@ -154,6 +154,7 @@ final class Rest {
             'hero_media' => attachment_payload((int) get_post_meta($id, 'ae_hero_media_id', true)),
             'gallery' => gallery_payload((string) get_post_meta($id, 'ae_gallery_ids', true)),
             'video_url' => esc_url_raw((string) get_post_meta($id, 'ae_video_url', true)),
+            'videos' => Work_Videos::payload($id),
             'external_link' => [
                 'label' => self::text((string) get_post_meta($id, 'ae_external_label', true)),
                 'url' => esc_url_raw((string) get_post_meta($id, 'ae_external_url', true)),
