@@ -139,6 +139,8 @@ final class Rest {
 
     private static function work_payload(\WP_Post $post): array {
         $id = (int) $post->ID;
+        $presentation = (string) get_post_meta($id, 'ae_presentation_type', true);
+        if (!in_array($presentation, ['standard', 'media_feature'], true)) { $presentation = 'standard'; }
         return [
             'id' => $id,
             'slug' => $post->post_name,
@@ -147,6 +149,9 @@ final class Rest {
             'service' => self::text((string) get_post_meta($id, 'ae_service_label', true)),
             'year' => (int) get_post_meta($id, 'ae_year', true) ?: null,
             'accent' => (string) get_post_meta($id, 'ae_accent', true) ?: 'cream',
+            'presentation_type' => $presentation,
+            'media_publisher' => self::text((string) get_post_meta($id, 'ae_media_publisher', true)),
+            'media_cover' => attachment_payload((int) get_post_meta($id, 'ae_media_cover_id', true)),
             'summary' => self::text(get_the_excerpt($id)),
             'content' => apply_filters('the_content', $post->post_content),
             'order' => (int) $post->menu_order,
