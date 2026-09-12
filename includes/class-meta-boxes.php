@@ -53,6 +53,9 @@ final class Meta_Boxes {
             'ae_service_label' => ['Hizmet / Proje Türü', 'text'],
             'ae_year' => ['Yıl', 'number'],
             'ae_accent' => ['Renk Vurgusu', 'select'],
+            'ae_presentation_type' => ['Sunum Tipi', 'presentation_select'],
+            'ae_media_publisher' => ['Yayın / Medya Adı', 'text'],
+            'ae_media_cover_id' => ['Media Feature Kapak Görseli', 'media'],
             'ae_hero_media_id' => ['Hero Görseli', 'media'],
             'ae_gallery_ids' => ['Galeri Görselleri', 'gallery'],
             'ae_external_label' => ['Dış Bağlantı Etiketi', 'text'],
@@ -62,7 +65,8 @@ final class Meta_Boxes {
         }
 
         self::work_videos($post->ID);
-        echo '<p class="description"><strong>Medya kullanımı:</strong> Liste kartı için Öne Çıkan Görseli; detay hero alanı için Hero Görseli; fotoğraflar için Galeri Görsellerini; hareketli içerikler için Videolar bölümünü kullanın. Video sayısı ve yatay/dikey formatı frontend tarafından otomatik düzenlenir.</p>';
+        echo '<p class="description"><strong>Sunum tipi:</strong> Standard normal proje/case study düzenini kullanır. Media Feature; Deadline, Variety, Formatbiz, Episode gibi editoryal/PR yerleştirmeleri için özel kapak ve yayın bilgisiyle ayrı bir sunum kullanır.</p>';
+        echo '<p class="description"><strong>Medya kullanımı:</strong> Liste kartı için Öne Çıkan Görseli; standart detay hero alanı için Hero Görseli; Media Feature seçildiğinde özel kapak için Media Feature Kapak Görselini; fotoğraflar için Galeri Görsellerini; hareketli içerikler için Videolar bölümünü kullanın.</p>';
     }
 
     private static function work_videos(int $post_id): void {
@@ -131,6 +135,13 @@ final class Meta_Boxes {
                 printf('<option value="%1$s" %2$s>%3$s</option>', esc_attr($accent), selected($value, $accent, false), esc_html($accent_label));
             }
             echo '</select>';
+        } elseif ('presentation_select' === $type) {
+            $presentation = $value ?: 'standard';
+            echo '<select name="' . esc_attr($key) . '">';
+            foreach (['standard' => 'Standard', 'media_feature' => 'Media Feature'] as $option => $option_label) {
+                printf('<option value="%1$s" %2$s>%3$s</option>', esc_attr($option), selected($presentation, $option, false), esc_html($option_label));
+            }
+            echo '</select>';
         } elseif ('media' === $type) {
             $id = absint($value);
             echo '<div class="ae-media-preview">' . self::attachment_preview($id) . '</div>';
@@ -165,7 +176,7 @@ final class Meta_Boxes {
         $nonce = isset($_POST[self::NONCE]) ? sanitize_text_field(wp_unslash($_POST[self::NONCE])) : '';
         if (!$nonce || !wp_verify_nonce($nonce, self::ACTION)) { return; }
 
-        foreach (['ae_hero_title','ae_about_heading','ae_services_heading','ae_fields_heading','ae_contact_heading','ae_style_key','ae_service_label','ae_external_label','ae_person_name','ae_person_role','ae_company'] as $key) {
+        foreach (['ae_hero_title','ae_about_heading','ae_services_heading','ae_fields_heading','ae_contact_heading','ae_style_key','ae_service_label','ae_external_label','ae_media_publisher','ae_person_name','ae_person_role','ae_company'] as $key) {
             if (isset($_POST[$key])) { update_post_meta($post_id, $key, sanitize_text_field(wp_unslash($_POST[$key]))); }
         }
         if (isset($_POST['ae_year'])) { update_post_meta($post_id, 'ae_year', absint(wp_unslash($_POST['ae_year']))); }
@@ -173,7 +184,11 @@ final class Meta_Boxes {
             $accent = sanitize_key(wp_unslash($_POST['ae_accent']));
             update_post_meta($post_id, 'ae_accent', in_array($accent, ['pink','orange','blue','cream','red'], true) ? $accent : 'cream');
         }
-        foreach (['ae_hero_media_id','ae_hero_desktop_id','ae_hero_mobile_id'] as $key) {
+        if (isset($_POST['ae_presentation_type'])) {
+            $presentation = sanitize_key(wp_unslash($_POST['ae_presentation_type']));
+            update_post_meta($post_id, 'ae_presentation_type', in_array($presentation, ['standard','media_feature'], true) ? $presentation : 'standard');
+        }
+        foreach (['ae_hero_media_id','ae_hero_desktop_id','ae_hero_mobile_id','ae_media_cover_id'] as $key) {
             if (isset($_POST[$key])) { update_post_meta($post_id, $key, absint(wp_unslash($_POST[$key]))); }
         }
         if (isset($_POST['ae_gallery_ids'])) {
