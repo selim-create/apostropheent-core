@@ -15,6 +15,10 @@ final class Content_Types {
 
     public static function boot(): void {
         add_action('init', [self::class, 'register']);
+        add_filter('manage_' . self::WORK . '_posts_columns', [self::class, 'work_columns']);
+        add_action('manage_' . self::WORK . '_posts_custom_column', [self::class, 'work_column'], 10, 2);
+        add_filter('manage_' . self::TESTIMONIAL . '_posts_columns', [self::class, 'testimonial_columns']);
+        add_action('manage_' . self::TESTIMONIAL . '_posts_custom_column', [self::class, 'testimonial_column'], 10, 2);
     }
 
     public static function register(): void {
@@ -23,6 +27,75 @@ final class Content_Types {
         self::register_type(self::FIELD, 'Alanlar', 'Alan', ['title', 'page-attributes']);
         self::register_type(self::WORK, 'Projeler', 'Proje', ['title', 'editor', 'excerpt', 'thumbnail', 'page-attributes'], true);
         self::register_type(self::TESTIMONIAL, 'Müşteri Görüşleri', 'Müşteri Görüşü', ['title', 'editor', 'page-attributes'], true);
+    }
+
+    public static function work_columns(array $columns): array {
+        $result = [];
+        foreach ($columns as $key => $label) {
+            $result[$key] = $label;
+            if ('title' === $key) {
+                $result['ae_language'] = 'Dil';
+                $result['ae_presentation'] = 'Sunum';
+                $result['ae_publisher'] = 'Yayın / Medya';
+                $result['ae_year'] = 'Yıl';
+            }
+        }
+        return $result;
+    }
+
+    public static function work_column(string $column, int $post_id): void {
+        if ('ae_language' === $column) {
+            echo '<span class="ae-chip">' . esc_html(strtoupper(current_language_for_post($post_id))) . '</span>';
+            return;
+        }
+
+        if ('ae_presentation' === $column) {
+            $presentation = (string) get_post_meta($post_id, 'ae_presentation_type', true);
+            echo esc_html('media_feature' === $presentation ? 'Media Feature' : 'Standard');
+            return;
+        }
+
+        if ('ae_publisher' === $column) {
+            $publisher = trim((string) get_post_meta($post_id, 'ae_media_publisher', true));
+            echo $publisher !== '' ? esc_html($publisher) : '<span class="ae-muted">—</span>';
+            return;
+        }
+
+        if ('ae_year' === $column) {
+            $year = (int) get_post_meta($post_id, 'ae_year', true);
+            echo $year > 0 ? esc_html((string) $year) : '<span class="ae-muted">—</span>';
+        }
+    }
+
+    public static function testimonial_columns(array $columns): array {
+        $result = [];
+        foreach ($columns as $key => $label) {
+            $result[$key] = $label;
+            if ('title' === $key) {
+                $result['ae_language'] = 'Dil';
+                $result['ae_person'] = 'Kişi';
+                $result['ae_company'] = 'Şirket';
+            }
+        }
+        return $result;
+    }
+
+    public static function testimonial_column(string $column, int $post_id): void {
+        if ('ae_language' === $column) {
+            echo '<span class="ae-chip">' . esc_html(strtoupper(current_language_for_post($post_id))) . '</span>';
+            return;
+        }
+
+        if ('ae_person' === $column) {
+            $person = trim((string) get_post_meta($post_id, 'ae_person_name', true));
+            echo $person !== '' ? esc_html($person) : '<span class="ae-muted">—</span>';
+            return;
+        }
+
+        if ('ae_company' === $column) {
+            $company = trim((string) get_post_meta($post_id, 'ae_company', true));
+            echo $company !== '' ? esc_html($company) : '<span class="ae-muted">—</span>';
+        }
     }
 
     private static function register_type(string $post_type, string $plural, string $singular, array $supports, bool $seo_visible = false): void {
