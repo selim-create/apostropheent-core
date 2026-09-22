@@ -95,6 +95,16 @@ final class Rest {
             ] : null,
             'services' => $services,
             'fields' => $fields,
+            'listing_content' => [
+                'work' => [
+                    'title' => self::text((string) get_option('apostrophe_core_work_page_title_' . $logical_lang, $logical_lang === 'fr' ? 'PROJETS' : 'WORK')),
+                    'intro' => self::text((string) get_option('apostrophe_core_work_page_intro_' . $logical_lang, $logical_lang === 'fr' ? 'Un aperçu des collaborations et campagnes que nous avons eu le plaisir d’imaginer et de réaliser.' : "A glimpse into the partnerships and campaigns we've had the pleasure of crafting.")),
+                ],
+                'testimonials' => [
+                    'title' => self::text((string) get_option('apostrophe_core_testimonials_page_title_' . $logical_lang, $logical_lang === 'fr' ? 'TÉMOIGNAGES' : 'TESTIMONIALS')),
+                    'intro' => self::text((string) get_option('apostrophe_core_testimonials_page_intro_' . $logical_lang, $logical_lang === 'fr' ? 'Ce que nos clients disent de leur collaboration avec nous' : 'What our clients say about partnering with us')),
+                ],
+            ],
             'listing_seo' => [
                 'work' => [
                     'title' => self::text((string) get_option('apostrophe_core_work_seo_title_' . $logical_lang, '')),
