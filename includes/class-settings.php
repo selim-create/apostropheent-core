@@ -78,6 +78,15 @@ final class Settings {
             'paris_address' => ['label' => 'Paris Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Genel'],
             'istanbul_address' => ['label' => 'İstanbul Adresi', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Genel'],
 
+            'work_page_title_en' => ['label' => 'Work Sayfa Başlığı (EN)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'WORK'],
+            'work_page_intro_en' => ['label' => 'Work Giriş Metni (EN)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları İçerik', 'default' => "A glimpse into the partnerships and campaigns we've had the pleasure of crafting."],
+            'work_page_title_fr' => ['label' => 'Work Sayfa Başlığı (FR)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'PROJETS'],
+            'work_page_intro_fr' => ['label' => 'Work Giriş Metni (FR)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'Un aperçu des collaborations et campagnes que nous avons eu le plaisir d’imaginer et de réaliser.'],
+            'testimonials_page_title_en' => ['label' => 'Testimonials Sayfa Başlığı (EN)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'TESTIMONIALS'],
+            'testimonials_page_intro_en' => ['label' => 'Testimonials Giriş Metni (EN)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'What our clients say about partnering with us'],
+            'testimonials_page_title_fr' => ['label' => 'Testimonials Sayfa Başlığı (FR)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'TÉMOIGNAGES'],
+            'testimonials_page_intro_fr' => ['label' => 'Testimonials Giriş Metni (FR)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları İçerik', 'default' => 'Ce que nos clients disent de leur collaboration avec nous'],
+
             'work_seo_title_en' => ['label' => 'Projects / Work SEO Başlığı (EN)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
             'work_seo_description_en' => ['label' => 'Projects / Work Meta Açıklaması (EN)', 'input' => 'textarea', 'sanitize' => 'sanitize_textarea_field', 'group' => 'Liste Sayfaları SEO'],
             'work_seo_title_fr' => ['label' => 'Projects / Work SEO Başlığı (FR)', 'sanitize' => 'sanitize_text_field', 'group' => 'Liste Sayfaları SEO'],
