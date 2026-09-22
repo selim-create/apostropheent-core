@@ -8,7 +8,8 @@ if (!defined('ABSPATH')) { exit; }
 
 final class Importer {
     public static function boot(): void {
-        add_action('admin_menu', [self::class, 'menu']);
+        // Legacy importer remains callable internally, but is no longer exposed
+        // in the editorial admin navigation.
         add_action('admin_post_apostrophe_run_legacy_import', [self::class, 'run']);
     }
 
