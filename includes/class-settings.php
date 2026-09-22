@@ -12,6 +12,7 @@ final class Settings {
 
     public static function boot(): void {
         add_action('admin_menu', [self::class, 'menu']);
+        add_action('admin_menu', [self::class, 'order_menu'], 999);
         add_action('admin_init', [self::class, 'register']);
         add_action('admin_enqueue_scripts', [self::class, 'assets']);
     }
@@ -28,6 +29,30 @@ final class Settings {
         );
         add_submenu_page('apostrophe-core', 'Dashboard', 'Dashboard', 'edit_posts', 'apostrophe-core', [self::class, 'dashboard']);
         add_submenu_page('apostrophe-core', 'Site Ayarları', 'Site Ayarları', 'manage_options', self::PAGE, [self::class, 'render']);
+    }
+
+    public static function order_menu(): void {
+        global $submenu;
+
+        if (empty($submenu['apostrophe-core']) || !is_array($submenu['apostrophe-core'])) { return; }
+
+        $priority = [
+            'apostrophe-core' => 0,
+            'edit.php?post_type=' . Content_Types::WORK => 10,
+            'edit.php?post_type=' . Content_Types::TESTIMONIAL => 20,
+            'edit.php?post_type=' . Content_Types::HOME => 30,
+            'edit.php?post_type=' . Content_Types::SERVICE => 40,
+            'edit.php?post_type=' . Content_Types::FIELD => 50,
+            self::PAGE => 90,
+        ];
+
+        usort($submenu['apostrophe-core'], static function (array $a, array $b) use ($priority): int {
+            $a_slug = (string) ($a[2] ?? '');
+            $b_slug = (string) ($b[2] ?? '');
+            $a_rank = $priority[$a_slug] ?? 70;
+            $b_rank = $priority[$b_slug] ?? 70;
+            return $a_rank <=> $b_rank;
+        });
     }
 
     public static function register(): void {
