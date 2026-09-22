@@ -221,3 +221,12 @@ body.wp-admin.apostrophe_page_apostrophe-core-settings{
   .ae-stat-grid{grid-template-columns:1fr}
   .ae-settings-nav{position:static}
 }
+
+.ae-muted{color:#aaa49d}
+.post-type-ae_work .column-ae_language,
+.post-type-ae_testimonial .column-ae_language{width:58px}
+.post-type-ae_work .column-ae_presentation{width:120px}
+.post-type-ae_work .column-ae_publisher{width:160px}
+.post-type-ae_work .column-ae_year{width:70px}
+.post-type-ae_testimonial .column-ae_person{width:180px}
+.post-type-ae_testimonial .column-ae_company{width:180px}
