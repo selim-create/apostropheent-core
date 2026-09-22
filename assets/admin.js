@@ -120,6 +120,24 @@
     if (!String($(this).val() || '').includes('/uploads/')) $card.find('.ae-video-attachment-id').val('');
   });
 
+
+  function syncPresentationFields() {
+    const value = $('select[name="ae_presentation_type"]').val() || 'standard';
+    $('.ae-media-feature-only').toggleClass('is-hidden', value !== 'media_feature');
+  }
+
+  $(document).on('change', 'select[name="ae_presentation_type"]', syncPresentationFields);
+
+  $(document).on('click', '.ae-settings-nav a', function (event) {
+    const href = $(this).attr('href') || '';
+    if (!href.startsWith('#')) return;
+    const target = document.querySelector(href);
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', href);
+  });
+
   $(document).on('click', '.ae-select-video-poster', function (event) {
     event.preventDefault();
     const $card = $(this).closest('.ae-video-card');
@@ -139,5 +157,5 @@
     $card.find('.ae-video-poster-preview').html('<span class="ae-empty-preview">Görsel seçilmedi</span>');
   });
 
-  $(function () { syncVideoRows(); });
+  $(function () { syncVideoRows(); syncPresentationFields(); });
 })(jQuery);
