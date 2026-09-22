@@ -26,6 +26,7 @@ final class Plugin {
         Security::boot();
         Importer::boot();
         Rank_Math::boot();
+        Headless::boot();
     }
 
     public static function activate(): void {
