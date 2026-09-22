@@ -69,7 +69,7 @@ final class Settings {
 
     public static function fields(): array {
         return [
-            'frontend_url' => ['label' => 'Frontend Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel', 'default' => 'https://apostropheent.vercel.app'],
+            'frontend_url' => ['label' => 'Frontend Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel'],
             'site_email' => ['label' => 'E-posta', 'input' => 'email', 'sanitize' => 'sanitize_email', 'group' => 'Genel'],
             'site_phone' => ['label' => 'Telefon', 'sanitize' => 'sanitize_text_field', 'group' => 'Genel'],
             'instagram_url' => ['label' => 'Instagram Adresi', 'input' => 'url', 'sanitize' => 'esc_url_raw', 'group' => 'Genel'],
