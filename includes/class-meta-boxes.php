@@ -52,24 +52,42 @@ final class Meta_Boxes {
 
     public static function work_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
-        foreach ([
-            'ae_service_label' => ['Hizmet / Proje Türü', 'text'],
-            'ae_year' => ['Yıl', 'number'],
-            'ae_accent' => ['Renk Vurgusu', 'select'],
-            'ae_presentation_type' => ['Sunum Tipi', 'presentation_select'],
-            'ae_media_publisher' => ['Yayın / Medya Adı', 'text'],
-            'ae_media_cover_id' => ['Media Feature Kapak Görseli', 'media'],
-            'ae_hero_media_id' => ['Hero Görseli', 'media'],
-            'ae_gallery_ids' => ['Galeri Görselleri', 'gallery'],
-            'ae_external_label' => ['Dış Bağlantı Etiketi', 'text'],
-            'ae_external_url' => ['Dış Bağlantı Adresi', 'url'],
-        ] as $key => [$label, $type]) {
-            self::field($post->ID, $key, $label, $type);
-        }
 
+        echo '<div class="ae-editor-intro">';
+        echo '<div><span class="ae-panel-eyebrow">WORK EDITOR</span><h3>Proje sunumu ve medya ayarları</h3><p>Önce temel bilgileri tamamlayın; ardından sunum tipine göre medya alanlarını doldurun.</p></div>';
+        echo '<div class="ae-editor-status"><span>' . esc_html(strtoupper(current_language_for_post((int) $post->ID))) . '</span><strong>' . esc_html('publish' === $post->post_status ? 'Yayında' : 'Taslak / Düzenleniyor') . '</strong></div>';
+        echo '</div>';
+
+        echo '<section class="ae-editor-section"><div class="ae-editor-section-head"><span>01</span><div><h4>Temel Bilgiler</h4><p>Frontend kartı ve detay sayfasında görünen temel proje bilgileri.</p></div></div>';
+        self::field($post->ID, 'ae_service_label', 'Hizmet / Proje Türü', 'text');
+        self::field($post->ID, 'ae_year', 'Yıl', 'number');
+        self::field($post->ID, 'ae_accent', 'Renk Vurgusu', 'select');
+        echo '</section>';
+
+        echo '<section class="ae-editor-section"><div class="ae-editor-section-head"><span>02</span><div><h4>Sunum Tipi</h4><p>Görsel sunum davranışını belirler. Yayın / medya bilgisi her iki sunum tipinde de kullanılabilir.</p></div></div>';
+        self::field($post->ID, 'ae_presentation_type', 'Sunum Tipi', 'presentation_select');
+        echo '<div class="ae-presentation-help"><strong>Standard</strong><span>Normal hero ve case study düzeni.</span><strong>Media Feature</strong><span>Editoryal yayın / PR yerleştirmeleri için özel kapak sunumu.</span></div>';
+        self::field($post->ID, 'ae_media_publisher', 'Yayın / Medya Adı', 'text');
+        echo '</section>';
+
+        echo '<section class="ae-editor-section ae-media-section"><div class="ae-editor-section-head"><span>03</span><div><h4>Görseller</h4><p>Kart, hero ve galeri görsellerini ayrı amaçlarla yönetin.</p></div></div>';
+        echo '<div class="ae-field-hint"><strong>Öne Çıkan Görsel</strong><span>WordPress sağ panelinden seçilir ve Work liste kartında kullanılır.</span></div>';
+        self::field($post->ID, 'ae_hero_media_id', 'Hero Görseli', 'media');
+        echo '<div class="ae-media-feature-only">';
+        self::field($post->ID, 'ae_media_cover_id', 'Media Feature Kapak Görseli', 'media');
+        echo '<p class="description">Bu alan yalnızca Media Feature sunumunda özel kapak olarak kullanılır.</p>';
+        echo '</div>';
+        self::field($post->ID, 'ae_gallery_ids', 'Galeri Görselleri', 'gallery');
+        echo '</section>';
+
+        echo '<section class="ae-editor-section"><div class="ae-editor-section-head"><span>04</span><div><h4>Dış Bağlantı</h4><p>Haber, yayın veya kampanya sayfasına opsiyonel yönlendirme ekleyin.</p></div></div>';
+        self::field($post->ID, 'ae_external_label', 'Dış Bağlantı Etiketi', 'text');
+        self::field($post->ID, 'ae_external_url', 'Dış Bağlantı Adresi', 'url');
+        echo '</section>';
+
+        echo '<section class="ae-editor-section"><div class="ae-editor-section-head"><span>05</span><div><h4>Videolar</h4><p>MP4/WebM, YouTube veya Vimeo kaynaklarını sıralayın ve öne çıkan videoyu seçin.</p></div></div>';
         self::work_videos($post->ID);
-        echo '<p class="description"><strong>Sunum tipi:</strong> Standard normal proje/case study düzenini kullanır. Media Feature; Deadline, Variety, Formatbiz, Episode gibi editoryal/PR yerleştirmeleri için özel kapak ve yayın bilgisiyle ayrı bir sunum kullanır.</p>';
-        echo '<p class="description"><strong>Medya kullanımı:</strong> Liste kartı için Öne Çıkan Görseli; standart detay hero alanı için Hero Görseli; Media Feature seçildiğinde özel kapak için Media Feature Kapak Görselini; fotoğraflar için Galeri Görsellerini; hareketli içerikler için Videolar bölümünü kullanın.</p>';
+        echo '</section>';
     }
 
     private static function work_videos(int $post_id): void {
