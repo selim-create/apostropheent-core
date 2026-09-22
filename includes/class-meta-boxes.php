@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) { exit; }
 
 final class Meta_Boxes {
     private const NONCE = 'apostrophe_core_meta_nonce';
+    private static bool $saving_slug = false;
     private const ACTION = 'apostrophe_core_save_meta';
 
     public static function boot(): void {
@@ -21,6 +22,8 @@ final class Meta_Boxes {
         add_meta_box('ae-service-details', 'Hizmet Detayları', [self::class, 'service_box'], Content_Types::SERVICE, 'side', 'default');
         add_meta_box('ae-work-details', 'Proje Detayları', [self::class, 'work_box'], Content_Types::WORK, 'normal', 'high');
         add_meta_box('ae-testimonial-details', 'Müşteri Görüşü Detayları', [self::class, 'testimonial_box'], Content_Types::TESTIMONIAL, 'normal', 'high');
+        add_meta_box('ae-frontend-url-work', 'Frontend URL', [self::class, 'slug_box'], Content_Types::WORK, 'side', 'high');
+        add_meta_box('ae-frontend-url-testimonial', 'Frontend URL', [self::class, 'slug_box'], Content_Types::TESTIMONIAL, 'side', 'high');
     }
 
     public static function assets(string $hook): void {
@@ -115,6 +118,16 @@ final class Meta_Boxes {
         echo '</div></div>';
     }
 
+    public static function slug_box(\WP_Post $post): void {
+        $slug = $post->post_name !== '' ? $post->post_name : sanitize_title($post->post_title);
+        echo '<p><label for="ae_frontend_slug"><strong>Kısa URL (slug)</strong></label></p>';
+        echo '<input type="text" id="ae_frontend_slug" name="ae_frontend_slug" class="widefat" value="' . esc_attr($slug) . '" placeholder="ornek-proje">';
+        echo '<p class="description">Yalnızca URL’nin son bölümünü yazın. Kaydettiğinizde güvenli biçimde temizlenir.</p>';
+        if ($post->post_status !== 'auto-draft' && $slug !== '') {
+            echo '<p><a href="' . esc_url(Plugin::post_url($post)) . '" target="_blank" rel="noopener noreferrer">Frontend’de görüntüle ↗</a></p>';
+        }
+    }
+
     public static function testimonial_box(\WP_Post $post): void {
         wp_nonce_field(self::ACTION, self::NONCE);
         self::field($post->ID, 'ae_person_name', 'Ad Soyad', 'text');
@@ -201,6 +214,16 @@ final class Meta_Boxes {
         if (Content_Types::WORK === $post->post_type) {
             $videos = isset($_POST['ae_videos']) && is_array($_POST['ae_videos']) ? wp_unslash($_POST['ae_videos']) : [];
             Work_Videos::save($post_id, $videos);
+        }
+
+        if (!self::$saving_slug && in_array($post->post_type, [Content_Types::WORK, Content_Types::TESTIMONIAL], true) && isset($_POST['ae_frontend_slug'])) {
+            $slug = sanitize_title((string) wp_unslash($_POST['ae_frontend_slug']));
+            if ($slug !== '' && $slug !== $post->post_name) {
+                $slug = wp_unique_post_slug($slug, $post_id, $post->post_status, $post->post_type, (int) $post->post_parent);
+                self::$saving_slug = true;
+                wp_update_post(['ID' => $post_id, 'post_name' => $slug]);
+                self::$saving_slug = false;
+            }
         }
     }
 }

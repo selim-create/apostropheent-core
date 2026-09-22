@@ -17,6 +17,7 @@ final class Rest {
         register_rest_route(self::NS, '/work', ['methods' => \WP_REST_Server::READABLE, 'callback' => [self::class, 'work'], 'permission_callback' => '__return_true', 'args' => ['lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key']]]);
         register_rest_route(self::NS, '/work/(?P<slug>[a-z0-9-]+)', ['methods' => \WP_REST_Server::READABLE, 'callback' => [self::class, 'work_item'], 'permission_callback' => '__return_true', 'args' => ['slug' => ['sanitize_callback' => 'sanitize_title'], 'lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key']]]);
         register_rest_route(self::NS, '/testimonials', ['methods' => \WP_REST_Server::READABLE, 'callback' => [self::class, 'testimonials'], 'permission_callback' => '__return_true', 'args' => ['lang' => ['default' => 'en', 'sanitize_callback' => 'sanitize_key']]]);
+        register_rest_route(self::NS, '/preview/(?P<id>\d+)', ['methods' => \WP_REST_Server::READABLE, 'callback' => [self::class, 'preview'], 'permission_callback' => '__return_true', 'args' => ['id' => ['sanitize_callback' => 'absint'], 'expires' => ['sanitize_callback' => 'absint'], 'token' => ['sanitize_callback' => 'sanitize_text_field']]]);
     }
 
     private static function text(string $value): string {
@@ -137,7 +138,7 @@ final class Rest {
         return get_posts($args);
     }
 
-    private static function work_payload(\WP_Post $post): array {
+    public static function work_payload(\WP_Post $post): array {
         $id = (int) $post->ID;
         $presentation = (string) get_post_meta($id, 'ae_presentation_type', true);
         if (!in_array($presentation, ['standard', 'media_feature'], true)) { $presentation = 'standard'; }
@@ -170,22 +171,54 @@ final class Rest {
     }
 
     public static function testimonials(\WP_REST_Request $request): \WP_REST_Response {
-        $lang = (string) $request->get_param('lang'); $posts = self::query_with_fallback(Content_Types::TESTIMONIAL, $lang); $items = [];
-        foreach ($posts as $post) {
-            $id = (int) $post->ID;
-            $items[] = [
-                'id' => $id,
-                'language' => current_language_for_post($id),
-                'quote' => self::text(wp_strip_all_tags($post->post_content)),
-                'name' => self::text((string) get_post_meta($id, 'ae_person_name', true)),
-                'role' => self::text((string) get_post_meta($id, 'ae_person_role', true)),
-                'company' => self::text((string) get_post_meta($id, 'ae_company', true)),
-                'accent' => (string) get_post_meta($id, 'ae_accent', true) ?: 'cream',
-                'order' => (int) $post->menu_order,
-                'translations' => self::translations($id),
-            ];
+        $lang = (string) $request->get_param('lang');
+        $posts = self::query_with_fallback(Content_Types::TESTIMONIAL, $lang);
+        return rest_ensure_response([
+            'language' => $lang,
+            'fallback_language' => ($posts && current_language_for_post((int) $posts[0]->ID) !== $lang) ? 'en' : null,
+            'items' => array_map([self::class, 'testimonial_payload'], $posts),
+        ]);
+    }
+
+    public static function preview(\WP_REST_Request $request): \WP_REST_Response|\WP_Error {
+        $post_id = (int) $request->get_param('id');
+        $expires = (int) $request->get_param('expires');
+        $token = (string) $request->get_param('token');
+
+        if (!Plugin::verify_preview_token($post_id, $expires, $token)) {
+            return new \WP_Error('apostrophe_invalid_preview', 'Preview link is invalid or expired.', ['status' => 403]);
         }
-        return rest_ensure_response(['language' => $lang, 'fallback_language' => ($posts && current_language_for_post((int) $posts[0]->ID) !== $lang) ? 'en' : null, 'items' => $items]);
+
+        $post = get_post($post_id);
+        if (!$post instanceof \WP_Post || !in_array($post->post_type, [Content_Types::WORK, Content_Types::TESTIMONIAL], true)) {
+            return new \WP_Error('apostrophe_preview_not_found', 'Preview item not found.', ['status' => 404]);
+        }
+
+        $payload = Content_Types::WORK === $post->post_type
+            ? self::work_payload($post)
+            : self::testimonial_payload($post);
+
+        return rest_ensure_response([
+            'post_type' => $post->post_type,
+            'status' => $post->post_status,
+            'item' => $payload,
+        ]);
+    }
+
+    public static function testimonial_payload(\WP_Post $post): array {
+        $id = (int) $post->ID;
+        return [
+            'id' => $id,
+            'slug' => $post->post_name,
+            'language' => current_language_for_post($id),
+            'quote' => self::text(wp_strip_all_tags($post->post_content)),
+            'name' => self::text((string) get_post_meta($id, 'ae_person_name', true)),
+            'role' => self::text((string) get_post_meta($id, 'ae_person_role', true)),
+            'company' => self::text((string) get_post_meta($id, 'ae_company', true)),
+            'accent' => (string) get_post_meta($id, 'ae_accent', true) ?: 'cream',
+            'order' => (int) $post->menu_order,
+            'translations' => self::translations($id),
+        ];
     }
 
     private static function translations(int $post_id): array {
