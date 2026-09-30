@@ -37,7 +37,7 @@ final class Rest {
     }
 
     private static function query(string $post_type, string $lang): array {
-        $orderby = Content_Types::WORK === $post_type
+        $orderby = in_array($post_type, [Content_Types::WORK, Content_Types::TESTIMONIAL], true)
             ? ['date' => 'DESC', 'ID' => 'DESC']
             : ['menu_order' => 'ASC', 'date' => 'ASC'];
 
